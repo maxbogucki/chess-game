@@ -11,6 +11,12 @@ export default class Board {
   constructor(boardId) {
     this.boardElement = document.getElementById(boardId);
     this.squares = [];
+    this.currentTurn = 1; // 1 - white, 0 - black-+-
+
+    // click handling
+    this.selectedSquare = null;
+    this.selectedPiece = null;
+    this.legalMovesForSelected = [];
   }
 
   render() {
@@ -24,6 +30,10 @@ export default class Board {
         div.dataset.r = r;
         div.dataset.c = c;
         square.element = div;
+
+        // Add click event listener to each square
+        div.addEventListener("click", () => this.handleSquareClick(square));
+
         this.boardElement.appendChild(div);
         this.squares.push(square);
       }
@@ -31,6 +41,77 @@ export default class Board {
 
     this.setupPieces();
     this.updateUI();
+  }
+
+  handleSquareClick(clickedSquare) {
+    // If no piece is selected yet
+    if (!this.selectedPiece) {
+      this.selectPiece(clickedSquare);
+    }
+    // If a piece is already selected
+    else {
+      // If clicking on the same square, deselect
+      if (clickedSquare === this.selectedSquare) {
+        this.deselectPiece();
+      }
+      // If clicking on another piece of the same color, select that piece instead
+      else if (
+        clickedSquare.piece &&
+        clickedSquare.piece.color === this.selectedPiece.color
+      ) {
+        this.deselectPiece();
+        this.selectPiece(clickedSquare);
+      }
+      // Try to move to the clicked square
+      else {
+        this.tryMove(clickedSquare);
+      }
+    }
+  }
+
+  selectPiece(square) {
+    // Only select if there's a pieceon the square
+    if (!square.piece) {
+      return;
+    }
+
+    // Ensure correct turn (1 = white, 0 = black)
+    if (
+      (this.currentTurn === 1 && square.piece.color !== "white") ||
+      (this.currentTurn === 0 && square.piece.color !== "black")
+    ) {
+      return; // Wrong turn, ignore click
+    }
+
+    this.selectedSquare = square;
+    this.selectedPiece = square.piece;
+    this.legalMovesForSelected = square.piece.getLegalMoves(this);
+
+    this.updateSelectionUI();
+  }
+
+  deselectPiece() {
+    this.selectedSquare = null;
+    this.selectedPiece = null;
+    this.legalMovesForSelected = [];
+
+    this.updateSelectionUI();
+  }
+
+  tryMove(targetSquare) {
+    const move = new Move(
+      this.selectedSquare,
+      targetSquare,
+      this.selectedPiece,
+      targetSquare.piece
+    );
+
+    if (this.makeMove(move)) {
+      this.deselectPiece();
+    } else {
+      console.log("Invalid move attempted");
+      // Keep piece selected so user can try another move
+    }
   }
 
   setupPieces() {
@@ -55,16 +136,43 @@ export default class Board {
     return this.squares[row * 8 + col];
   }
 
+  updateSelectionUI() {
+    // Clear all previous selection highlights
+    this.squares.forEach((square) => {
+      square.element.classList.remove("selected", "legal-move", "capture-move");
+    });
+
+    // If a piece is selected, highlihgt it and its legal moves
+    if (this.selectedPiece) {
+      // Highlight selected square
+      this.selectedSquare.element.classList.add("selected");
+
+      // Highlight legal moves
+      this.legalMovesForSelected.forEach((move) => {
+        if (move.capturedPiece) {
+          move.toSquare.element.classList.add("capture-move");
+        } else {
+          move.toSquare.element.classList.add("legal-move");
+        }
+      });
+    }
+  }
+
   updateUI() {
     this.squares.forEach((square) => {
+      // Clear ALL piece-related classes first
+      square.element.classList.remove("white", "black");
+
       if (square.piece) {
         square.element.textContent = square.piece.getSymbol();
         square.element.classList.add(square.piece.color); // Add classes white/black
       } else {
         square.element.textContent = "";
-        square.element.classList.remove("white", "black"); // Remove old classes
       }
     });
+
+    // Maintain selection highlights after the UI update
+    this.updateSelectionUI();
   }
 
   makeMove(move) {
@@ -82,6 +190,9 @@ export default class Board {
     // update the piece's internal square reference
     move.piece.square = move.toSquare;
 
+    // Switch turn
+    this.currentTurn = this.currentTurn === 1 ? 0 : 1;
+
     this.updateUI();
 
     return true;
@@ -95,17 +206,5 @@ export default class Board {
         legalMove.fromSquare === move.fromSquare &&
         legalMove.toSquare === move.toSquare
     );
-  }
-
-  testMove() {
-    const fromSquare = this.getSquare(6, 4); // e2 (row 6, col 4)
-    const toSquare = this.getSquare(4, 4); // e4 (row 4, col 4)
-    const piece = fromSquare.piece;
-
-    if (piece) {
-      const move = new Move(fromSquare, toSquare, piece);
-      this.makeMove(move);
-      console.log("Move executed successfully!");
-    }
   }
 }
