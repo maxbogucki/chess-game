@@ -24,12 +24,12 @@ export default class Pawn extends Piece {
       const isFirstMove =
         (this.color === "white" && row === 6) ||
         (this.color === "black" && row === 1);
-    }
 
-    if (isFirstMove) {
-      const twoForward = board.getSquare(row + 2 * direction, col);
-      if (twoForward && !twoForward.isOccupied()) {
-        moves.push(new Move(this.square, twoForward, this));
+      if (isFirstMove) {
+        const twoForward = board.getSquare(row + 2 * direction, col);
+        if (twoForward && !twoForward.isOccupied()) {
+          moves.push(new Move(this.square, twoForward, this));
+        }
       }
     }
 
@@ -45,7 +45,11 @@ export default class Pawn extends Piece {
       moves.push(new Move(this.square, captureLeft, this, captureLeft.piece));
     }
 
-    if (captureRight.isOccupied() && captureRight.piece.color !== this.color) {
+    if (
+      captureRight &&
+      captureRight.isOccupied() &&
+      captureRight.piece.color !== this.color
+    ) {
       moves.push(new Move(this.square, captureRight, this, captureRight.piece));
     }
 
