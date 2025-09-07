@@ -11,7 +11,8 @@ export default class Board {
   constructor(boardId) {
     this.boardElement = document.getElementById(boardId);
     this.squares = [];
-    this.currentTurn = 1; // 1 - white, 0 - black-+-
+    this.currentTurn = 1; // 1 - white, 0 - black
+    this.lastMove = null;
 
     // click handling
     this.selectedSquare = null;
@@ -99,18 +100,26 @@ export default class Board {
   }
 
   tryMove(targetSquare) {
-    const move = new Move(
-      this.selectedSquare,
-      targetSquare,
-      this.selectedPiece,
-      targetSquare.piece
+    // Try to find a matching legal move that was computed when the piece was selected.
+    const legalMove = this.legalMovesForSelected.find(
+      (m) => m.fromSquare === this.selectedSquare && m.toSquare === targetSquare
     );
+
+    // Use the legal move object if found (preserves flags like isEnPassant / isDoublePawnPush),
+    // otherwise fall back to constructing a minimal Move (shouldn't normally be needed).
+    const move =
+      legalMove ||
+      new Move(
+        this.selectedSquare,
+        targetSquare,
+        this.selectedPiece,
+        targetSquare.piece
+      );
 
     if (this.makeMove(move)) {
       this.deselectPiece();
     } else {
       console.log("Invalid move attempted");
-      // Keep piece selected so user can try another move
     }
   }
 
@@ -139,7 +148,7 @@ export default class Board {
   updateSelectionUI() {
     // Clear all previous selection highlights
     this.squares.forEach((square) => {
-      square.element.classList.remove("selected", "legal-move", "capture-move");
+      square.element.classList.remove("selected", "legal-move");
     });
 
     // If a piece is selected, highlihgt it and its legal moves
@@ -149,11 +158,7 @@ export default class Board {
 
       // Highlight legal moves
       this.legalMovesForSelected.forEach((move) => {
-        if (move.capturedPiece) {
-          move.toSquare.element.classList.add("capture-move");
-        } else {
-          move.toSquare.element.classList.add("legal-move");
-        }
+        move.toSquare.element.classList.add("legal-move");
       });
     }
   }
@@ -181,6 +186,15 @@ export default class Board {
       return false;
     }
 
+    // Handle en passant before removing original piece
+    if (move.isEnPassant) {
+      const capturedPawnSquare = this.getSquare(
+        move.fromSquare.row,
+        move.toSquare.col
+      );
+      capturedPawnSquare.setPiece(null);
+    }
+
     // Remove piece from the original square
     move.fromSquare.setPiece(null);
 
@@ -189,6 +203,12 @@ export default class Board {
 
     // update the piece's internal square reference
     move.piece.square = move.toSquare;
+
+    // mark that this piece has moved (useful later for castling etc.)
+    move.piece.hasMoved = true;
+
+    // Track last move
+    this.lastMove = move;
 
     // Switch turn
     this.currentTurn = this.currentTurn === 1 ? 0 : 1;
