@@ -5,6 +5,7 @@ import Knight from "../pieces/knight.js";
 import Bishop from "../pieces/bishop.js";
 import Queen from "../pieces/queen.js";
 import King from "../pieces/king.js";
+import Move from "./move.js";
 
 export default class Board {
   constructor(boardId) {
@@ -56,7 +57,7 @@ export default class Board {
 
   updateUI() {
     this.squares.forEach((square) => {
-      if(square.piece) {
+      if (square.piece) {
         square.element.textContent = square.piece.getSymbol();
         square.element.classList.add(square.piece.color); // Add classes white/black
       } else {
@@ -64,5 +65,47 @@ export default class Board {
         square.element.classList.remove("white", "black"); // Remove old classes
       }
     });
+  }
+
+  makeMove(move) {
+    // Validate that the move is legal
+    if (!this.isValidMove(move)) {
+      return false;
+    }
+
+    // Remove piece from the original square
+    move.fromSquare.setPiece(null);
+
+    // PLace the piece on the destination square
+    move.toSquare.setPiece(move.piece);
+
+    // update the piece's internal square reference
+    move.piece.square = move.toSquare;
+
+    this.updateUI();
+
+    return true;
+  }
+
+  isValidMove(move) {
+    const legalMoves = move.piece.getLegalMoves(this);
+
+    return legalMoves.some(
+      (legalMove) =>
+        legalMove.fromSquare === move.fromSquare &&
+        legalMove.toSquare === move.toSquare
+    );
+  }
+
+  testMove() {
+    const fromSquare = this.getSquare(6, 4); // e2 (row 6, col 4)
+    const toSquare = this.getSquare(4, 4); // e4 (row 4, col 4)
+    const piece = fromSquare.piece;
+
+    if (piece) {
+      const move = new Move(fromSquare, toSquare, piece);
+      this.makeMove(move);
+      console.log("Move executed successfully!");
+    }
   }
 }
