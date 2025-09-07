@@ -1,4 +1,5 @@
 import Piece from "./piece.js";
+import Move from "./moves.js";
 
 export default class Pawn extends Piece {
   constructor(square, color) {
@@ -17,7 +18,7 @@ export default class Pawn extends Piece {
     // One square forward
     const oneForward = board.getSquare(row + direction, col);
     if (oneForward && !oneForward.isOccupied()) {
-      moves.push(forward);
+      moves.push(new Move(this.square, oneForward, this));
 
       // Two squares forward (first move only)
       const isFirstMove =
@@ -28,7 +29,7 @@ export default class Pawn extends Piece {
     if (isFirstMove) {
       const twoForward = board.getSquare(row + 2 * direction, col);
       if (twoForward && !twoForward.isOccupied()) {
-        moves.push(twoForward);
+        moves.push(new Move(this.square, twoForward, this));
       }
     }
 
@@ -41,11 +42,11 @@ export default class Pawn extends Piece {
       captureLeft.isOccupied() &&
       captureLeft.piece.color !== this.color
     ) {
-      moves.push(captureLeft);
+      moves.push(new Move(this.square, captureLeft, this, captureLeft.piece));
     }
 
     if (captureRight.isOccupied() && captureRight.piece.color !== this.color) {
-      moves.push(captureRight);
+      moves.push(new Move(this.square, captureRight, this, captureRight.piece));
     }
 
     return moves;
