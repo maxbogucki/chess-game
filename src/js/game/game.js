@@ -9,6 +9,7 @@ export default class Game {
   init() {
     this.board = new Board(this.boardId);
     this.board.render();
+    this.board.testMove();
     console.log("Game initialized");
   }
 }
