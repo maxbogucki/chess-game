@@ -1,86 +1,49 @@
 import Move from "../game/move.js";
 
-export function getVerticalMoves(board) {
+// Combined optimized function for both vertical and horizontal moves
+export function getStraightMoves(board) {
   const moves = [];
   const { row, col } = this.square;
 
-  // Up
-  for (let r = row - 1; r >= 0; r--) {
-    const targetSquare = board.getSquare(r, col);
+  // Define all 4 straight directions: [rowDelta, colDelta]
+  const directions = [
+    [-1, 0], // Up
+    [1, 0], // Down
+    [0, -1], // Left
+    [0, 1], // Right
+  ];
 
-    if (targetSquare.isOccupied()) {
-      // If occupied by enemy piece, add capture move
-      if (targetSquare.piece.color !== this.color) {
-        moves.push(
-          new Move(this.square, targetSquare, this, targetSquare.piece)
-        );
+  // Check each straight direction
+  for (const [rowDelta, colDelta] of directions) {
+    let currentRow = row + rowDelta;
+    let currentCol = col + colDelta;
+
+    // Continue in this direction until we hit a piece or board edge
+    while (
+      currentRow >= 0 &&
+      currentRow < 8 &&
+      currentCol >= 0 &&
+      currentCol < 8
+    ) {
+      const targetSquare = board.getSquare(currentRow, currentCol);
+
+      if (targetSquare.isOccupied()) {
+        // If occupied by enemy piece, add capture move then stop
+        if (targetSquare.piece.color !== this.color) {
+          moves.push(
+            new Move(this.square, targetSquare, this, targetSquare.piece)
+          );
+        }
+        break; // Stop searching in this direction (hit a piece)
       }
-      break; // Stop searching in this direction (hit a piece)
+
+      // If empty square, add regular move and continue
+      moves.push(new Move(this.square, targetSquare, this));
+
+      // Move to next square in this direction
+      currentRow += rowDelta;
+      currentCol += colDelta;
     }
-
-    // If empty square, add regular move
-    moves.push(new Move(this.square, targetSquare, this));
-  }
-
-  // Down
-  for (let r = row + 1; r < 8; r++) {
-    const targetSquare = board.getSquare(r, col);
-
-    if (targetSquare.isOccupied()) {
-      // If occupied by enemy piece, add capture move
-      if (targetSquare.piece.color !== this.color) {
-        moves.push(
-          new Move(this.square, targetSquare, this, targetSquare.piece)
-        );
-      }
-      break; // Stop searching in this direction (hit a piece)
-    }
-
-    // If empty square, add regular move
-    moves.push(new Move(this.square, targetSquare, this));
-  }
-
-  return moves;
-}
-
-export function getHorizontalMoves(board) {
-  const moves = [];
-  const { row, col } = this.square;
-
-  // Left
-  for (let c = col - 1; c >= 0; c--) {
-    const targetSquare = board.getSquare(row, c);
-
-    if (targetSquare.isOccupied()) {
-      // If occupied by enemy piece, add capture move
-      if (targetSquare.piece.color !== this.color) {
-        moves.push(
-          new Move(this.square, targetSquare, this, targetSquare.piece)
-        );
-      }
-      break; // Stop searching in this direction (hit a piece)
-    }
-
-    // If empty square, add regular move
-    moves.push(new Move(this.square, targetSquare, this));
-  }
-
-  // Right
-  for (let c = col + 1; c < 8; c++) {
-    const targetSquare = board.getSquare(row, c);
-
-    if (targetSquare.isOccupied()) {
-      // If occupied by enemy piece, add capture move
-      if (targetSquare.piece.color !== this.color) {
-        moves.push(
-          new Move(this.square, targetSquare, this, targetSquare.piece)
-        );
-      }
-      break; // Stop searching in this direction (hit a piece)
-    }
-
-    // If empty square, add regular move
-    moves.push(new Move(this.square, targetSquare, this));
   }
 
   return moves;
@@ -94,7 +57,7 @@ export function getDiagonalMoves(board) {
   const directions = [
     [-1, -1], // up-left
     [-1, 1], // up-right
-    [1, -1], // down-left 
+    [1, -1], // down-left
     [1, 1], // down-right
   ];
 

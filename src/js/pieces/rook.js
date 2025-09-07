@@ -1,5 +1,5 @@
 import Piece from "./piece.js";
-import { getVerticalMoves, getHorizontalMoves } from "../utils/moveHelpers.js";
+import { getStraightMoves } from "../utils/moveHelpers.js";
 
 export default class Rook extends Piece {
   constructor(square, color) {
@@ -11,6 +11,6 @@ export default class Rook extends Piece {
   }
 
   getLegalMoves(board) {
-    return [...getVerticalMoves.call(this, board), ...getHorizontalMoves.call(this, board)];
+    return getStraightMoves.call(this, board);
   }
 }
