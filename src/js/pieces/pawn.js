@@ -1,5 +1,5 @@
 import Piece from "./piece.js";
-import Move from "./moves.js";
+import Move from "../game/move.js";
 
 export default class Pawn extends Piece {
   constructor(square, color) {
