@@ -4,7 +4,10 @@ export default class Piece {
         this.color = color;
     }
 
-    // will be implemented in subclasses
+    getSymbol() {
+        return "";
+    }
+
     getLegalMoves(board) {
         return [];
     }

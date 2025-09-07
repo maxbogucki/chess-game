@@ -33,12 +33,22 @@ h1 {
     justify-content: center;
     align-items: center;
     font-size: 48px;
+    font-weight: bold;
 }
 
 .square.light {
     background: #f0d9b5;
 }
 
-.square-dark {
+.square.dark {
     background: #b58863
+}
+
+.white {
+    color: #fff;
+    text-shadow: 1px 1px 2px #000;
+}
+
+.black {
+    color: #000;
 }

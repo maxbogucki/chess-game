@@ -1,7 +1,11 @@
-import Piece from "./piece";
+import Piece from "./piece.js";
 
 export default class Knight extends Piece {
-    constructor(color, square) {
-        super(color, square);
-    }
+  constructor(square, color) {
+    super(square, color);
+  }
+
+  getSymbol() {
+    return this.color === "white" ? "♘" : "♞";
+  }
 }
