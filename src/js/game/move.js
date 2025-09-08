@@ -10,5 +10,10 @@ export default class Move {
     this.isEnPassant = false;
     this.isPromotion = false;
     this.promotionPiece = null;
+
+    // Castling properties
+    this.isCastle = false;
+    this.castleRookFrom = null; // Original rook square
+    this.castleRookTo = null;   // Rook's destination square
   }
 }

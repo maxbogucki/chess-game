@@ -22,7 +22,7 @@ export function isInCheck(board, color) {
   const opponentColor = color === "white" ? "black" : "white";
 
   // iterate opponent pieces and see if any legal move targets the king square.
-  // Using piece.getPseudoLegalMoves(board) is acceptable for check detection (pseudo-legal attacks).
+  // Using piece.getPseudoLegalMoves(board) for check detection (pseudo-legal attacks).
   for (const sq of board.squares) {
     const p = sq.piece;
     if (!p || p.color !== opponentColor) continue;
@@ -99,7 +99,29 @@ export function undoTemporaryMove(board, undo) {
     epCapturedSquare,
     prevEpPiece,
     promotedPiece,
+    isCastle,
+    castleRook,
+    castleRookFrom,
+    castleRookTo,
+    prevRookHasMoved,
   } = undo;
+
+  // Handle castling undo
+  if (isCastle) {
+    // Restore king
+    toSquare.setPiece(null);
+    fromSquare.setPiece(movingPiece);
+    movingPiece.square = fromSquare;
+    movingPiece.hasMoved = prevHasMoved;
+
+    // Restore rook
+    castleRookTo.setPiece(null);
+    castleRookFrom.setPiece(castleRook);
+    castleRook.square = castleRookFrom;
+    castleRook.hasMoved = prevRookHasMoved;
+
+    return;
+  }
 
   // If we created a promoted piece, remove it and restore pawn to fromSquare
   if (promotedPiece) {

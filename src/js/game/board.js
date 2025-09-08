@@ -12,7 +12,7 @@ import {
   checkGameState,
   applyTemporaryMove,
   undoTemporaryMove,
-  isSameMove
+  isSameMove,
 } from "../helpers/chessRules.js";
 
 export default class Board {
@@ -196,35 +196,49 @@ export default class Board {
     const isLegal = legalMoves.some((m) => isSameMove(m, move));
     if (!isLegal) return false;
 
-    // Handle en passant before removing original piece
-    if (move.isEnPassant) {
+    // Handle castling
+    if (move.isCastle) {
+      // Move the king
+      move.fromSquare.setPiece(null);
+      move.toSquare.setPiece(move.piece);
+      move.piece.square = move.toSquare;
+      move.piece.hasMoved = true;
+
+      // Move the rook
+      const rook = move.castleRookFrom.piece;
+      move.castleRookFrom.setPiece(null);
+      move.castleRookTo.setPiece(rook);
+      rook.square = move.castleRookTo;
+      rook.hasMoved = true;
+    }
+    // Handle en passant
+    else if (move.isEnPassant) {
       const capturedPawnSquare = this.getSquare(
         move.fromSquare.row,
         move.toSquare.col
       );
       capturedPawnSquare.setPiece(null);
+      move.fromSquare.setPiece(null);
+      move.toSquare.setPiece(move.piece);
+      move.piece.square = move.toSquare;
+      move.piece.hasMoved = true;
     }
-
-    // Remove piece from the original square
-    move.fromSquare.setPiece(null);
-
-    // If the move is a pawn promotion, replace with a Queen
-    if (move.isPromotion) {
+    // Handle promotion
+    else if (move.isPromotion) {
+      move.fromSquare.setPiece(null);
       const newPiece = new Queen(move.toSquare, move.piece.color);
       move.toSquare.setPiece(newPiece);
       newPiece.square = move.toSquare;
+      newPiece.hasMoved = true;
       move.piece = newPiece;
-    } else {
-      // Regular move
+    }
+    // Regular move
+    else {
+      move.fromSquare.setPiece(null);
       move.toSquare.setPiece(move.piece);
       move.piece.square = move.toSquare;
+      move.piece.hasMoved = true;
     }
-
-    // update the piece's internal square reference
-    move.piece.square = move.toSquare;
-
-    // mark that this piece has moved (useful later for castling etc.)
-    move.piece.hasMoved = true;
 
     // Track last move
     this.lastMove = move;
@@ -245,7 +259,6 @@ export default class Board {
     }
 
     this.updateUI();
-
     return true;
   }
 
