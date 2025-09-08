@@ -263,7 +263,11 @@ export default class Board {
   }
 
   getLegalMovesForPiece(piece) {
-    const pseudoMoves = piece.getPseudoLegalMoves(this);
+    const pseudoMoves =
+      piece instanceof King
+        ? piece.getAllPossibleMoves(this)
+        : piece.getPseudoLegalMoves(this);
+
     return this.filterLegalMoves(pseudoMoves, piece.color);
   }
 

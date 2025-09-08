@@ -1,6 +1,10 @@
 import Piece from "./piece.js";
 import Move from "../game/move.js";
-// import { isPathClear, isSquareAttacked } from "../helpers/moveHelpers.js";
+import {
+  applyTemporaryMove,
+  undoTemporaryMove,
+  isInCheck,
+} from "../helpers/chessRules.js";
 
 export default class King extends Piece {
   constructor(square, color) {
@@ -11,6 +15,7 @@ export default class King extends Piece {
     return this.color === "white" ? "♔" : "♚";
   }
 
+  // Basic king moves WITHOUT castling - used for check detection
   getPseudoLegalMoves(board) {
     const moves = [];
     const { row, col } = this.square;
@@ -47,6 +52,15 @@ export default class King extends Piece {
         }
       }
     }
+
+    // NOTE: We do NOT add castling moves here to prevent recursion
+    return moves;
+  }
+
+  // All possible moves INCLUDING castling - used by game interface
+  getAllPossibleMoves(board) {
+    // Get basic moves first
+    const moves = this.getPseudoLegalMoves(board);
 
     // Add castling moves
     moves.push(...this.getCastlingMoves(board));
@@ -98,19 +112,18 @@ export default class King extends Piece {
       return false;
     }
 
-    const { row } = this.square;
+    const { row, col } = this.square;
 
     // Check if path is clear
     if (side === "kingside") {
-      // Check squares between king and rook (f1/f8 and g1/g8)
+      // Check squares between king and rook (f and g)
       for (let c = 5; c <= 6; c++) {
         if (board.getSquare(row, c).isOccupied()) {
           return false;
         }
       }
     } else {
-      // queenside
-      // Check squares between king and rook (b1/b8, c1/c8, d1/d8)
+      // queenside: check b, c, d (columns 1..3)
       for (let c = 1; c <= 3; c++) {
         if (board.getSquare(row, c).isOccupied()) {
           return false;
@@ -118,6 +131,36 @@ export default class King extends Piece {
       }
     }
 
+    // Can't castle if king is currently in check
+    // This is now safe because isInCheck only uses getPseudoLegalMoves (no castling)
+    if (isInCheck(board, this.color)) return false;
+
+    // Can't castle if any square the king passes through (or ends on) is attacked
+    const colsToCheck = [];
+    if (side === "kingside") {
+      colsToCheck.push(col + 1, col + 2);
+    } else {
+      colsToCheck.push(col - 1, col - 2);
+    }
+
+    for (const c of colsToCheck) {
+      // ensure in board bounds (defensive)
+      if (c < 0 || c > 7) return false;
+
+      const targetSquare = board.getSquare(row, c);
+      // Build a pseudo move that moves the king to targetSquare
+      const tempMove = new Move(this.square, targetSquare, this);
+
+      const undo = applyTemporaryMove(board, tempMove);
+      const kingInCheckAfterMove = isInCheck(board, this.color);
+      undoTemporaryMove(board, undo);
+
+      if (kingInCheckAfterMove) {
+        return false; // can't pass through or land on an attacked square
+      }
+    }
+
+    // All checks passed
     return true;
   }
 }
