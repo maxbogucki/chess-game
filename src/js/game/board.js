@@ -12,7 +12,7 @@ import {
   checkGameState,
   applyTemporaryMove,
   undoTemporaryMove,
-  isSameMove
+  isSameMove,
 } from "../helpers/chessRules.js";
 
 export default class Board {
@@ -261,5 +261,26 @@ export default class Board {
       undoTemporaryMove(this, undo);
       return !inCheck;
     });
+  }
+
+  resetGame() {
+    // Reset game state
+    this.currentTurn = 1; // White goes first
+    this.lastMove = null;
+    this.gameOver = false;
+    this.selectedSquare = null;
+    this.selectedPiece = null;
+    this.legalMovesForSelected = [];
+
+    // Clear all squares
+    this.squares.forEach((square) => {
+      square.setPiece(null);
+    });
+
+    // Set up pieces again
+    this.setupPieces();
+    this.updateUI();
+
+    console.log("Game reset!");
   }
 }
