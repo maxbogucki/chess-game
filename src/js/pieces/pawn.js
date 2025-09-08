@@ -15,10 +15,24 @@ export default class Pawn extends Piece {
     const { row, col } = this.square;
     const direction = this.color === "white" ? -1 : 1;
 
+    // promotion check helper
+    const isPromotionRank = (targetRow) => {
+      return (
+        (this.color === "white" && targetRow === 0) ||
+        (this.color === "black" && targetRow === 7)
+      );
+    };
+
     // One square forward
     const oneForward = board.getSquare(row + direction, col);
     if (oneForward && !oneForward.isOccupied()) {
-      moves.push(new Move(this.square, oneForward, this));
+      const move = new Move(this.square, oneForward, this);
+
+      if (isPromotionRank(row + direction)) {
+        move.isPromotion = true;
+        move.promotionPiece = "Queen"; // Default promotion for now
+      }
+      moves.push(move);
 
       // Two squares forward (first move only)
       const isFirstMove =
@@ -39,21 +53,25 @@ export default class Pawn extends Piece {
     const captureLeft = board.getSquare(row + direction, col - 1);
     const captureRight = board.getSquare(row + direction, col + 1);
 
-    if (
-      captureLeft &&
-      captureLeft.isOccupied() &&
-      captureLeft.piece.color !== this.color
-    ) {
-      moves.push(new Move(this.square, captureLeft, this, captureLeft.piece));
-    }
-
-    if (
-      captureRight &&
-      captureRight.isOccupied() &&
-      captureRight.piece.color !== this.color
-    ) {
-      moves.push(new Move(this.square, captureRight, this, captureRight.piece));
-    }
+    [captureLeft, captureRight].forEach((captureSquare) => {
+      if (
+        captureSquare &&
+        captureSquare.isOccupied() &&
+        captureSquare.piece.color !== this.color
+      ) {
+        const move = new Move(
+          this.square,
+          captureSquare,
+          this,
+          captureSquare.piece
+        );
+        if (isPromotionRank(row + direction)) {
+          move.isPromotion = true;
+          move.promotionPiece = "Queen";
+        }
+        moves.push(move);
+      }
+    });
 
     // en passant
     const last = board.lastMove;
