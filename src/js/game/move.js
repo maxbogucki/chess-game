@@ -8,5 +8,7 @@ export default class Move {
     // special moves
     this.isDoublePawnPush = false;
     this.isEnPassant = false;
+    this.isPromotion = false;
+    this.promotionPiece = null;
   }
 }

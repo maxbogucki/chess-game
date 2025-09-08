@@ -198,8 +198,16 @@ export default class Board {
     // Remove piece from the original square
     move.fromSquare.setPiece(null);
 
-    // PLace the piece on the destination square
-    move.toSquare.setPiece(move.piece);
+    // If the move is a pawn promotion, replace with a Queen
+    if (move.isPromotion) {
+      const newPiece = new Queen(move.toSquare, move.piece.color);
+      move.toSquare.setPiece(newPiece);
+      newPiece.square = move.toSquare;
+    } else {
+      // Regular move
+      move.toSquare.setPiece(move.piece);
+      move.piece.square = move.toSquare;
+    }
 
     // update the piece's internal square reference
     move.piece.square = move.toSquare;
