@@ -1,5 +1,5 @@
 import Piece from "./piece.js";
-import { getStraightMoves, getDiagonalMoves } from "../utils/moveHelpers.js";
+import { getStraightMoves, getDiagonalMoves } from "../helpers/moveHelpers.js";
 
 export default class Queen extends Piece {
   constructor(square, color) {
@@ -10,7 +10,7 @@ export default class Queen extends Piece {
     return this.color === "white" ? "♕" : "♛";
   }
 
-  getLegalMoves(board) {
+  getPseudoLegalMoves(board) {
     return [
       ...getStraightMoves.call(this, board),
       ...getDiagonalMoves.call(this, board),

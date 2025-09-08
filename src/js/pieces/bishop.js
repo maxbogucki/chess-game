@@ -1,5 +1,5 @@
 import Piece from "./piece.js";
-import { getDiagonalMoves } from "../utils/moveHelpers.js";
+import { getDiagonalMoves } from "../helpers/moveHelpers.js";
 
 export default class Bishop extends Piece {
   constructor(square, color) {
@@ -10,7 +10,7 @@ export default class Bishop extends Piece {
     return this.color === "white" ? "♗" : "♝";
   }
 
-  getLegalMoves(board) {
+  getPseudoLegalMoves(board) {
     return getDiagonalMoves.call(this, board);
   }
 }

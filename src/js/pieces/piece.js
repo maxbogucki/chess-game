@@ -9,7 +9,7 @@ export default class Piece {
         return "";
     }
 
-    getLegalMoves(board) {
+    getPseudoLegalMoves(board) {
         return [];
     }
 }

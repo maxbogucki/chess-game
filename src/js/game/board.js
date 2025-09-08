@@ -7,12 +7,21 @@ import Queen from "../pieces/queen.js";
 import King from "../pieces/king.js";
 import Move from "./move.js";
 
+import {
+  isInCheck,
+  checkGameState,
+  applyTemporaryMove,
+  undoTemporaryMove,
+  isSameMove
+} from "../helpers/chessRules.js";
+
 export default class Board {
   constructor(boardId) {
     this.boardElement = document.getElementById(boardId);
     this.squares = [];
     this.currentTurn = 1; // 1 - white, 0 - black
     this.lastMove = null;
+    this.gameOver = false;
 
     // click handling
     this.selectedSquare = null;
@@ -45,6 +54,8 @@ export default class Board {
   }
 
   handleSquareClick(clickedSquare) {
+    if (this.gameOver) return;
+
     // If no piece is selected yet
     if (!this.selectedPiece) {
       this.selectPiece(clickedSquare);
@@ -71,7 +82,7 @@ export default class Board {
   }
 
   selectPiece(square) {
-    // Only select if there's a pieceon the square
+    // Only select if there's a piece on the square
     if (!square.piece) {
       return;
     }
@@ -86,7 +97,7 @@ export default class Board {
 
     this.selectedSquare = square;
     this.selectedPiece = square.piece;
-    this.legalMovesForSelected = square.piece.getLegalMoves(this);
+    this.legalMovesForSelected = this.getLegalMovesForPiece(square.piece);
 
     this.updateSelectionUI();
   }
@@ -151,7 +162,7 @@ export default class Board {
       square.element.classList.remove("selected", "legal-move");
     });
 
-    // If a piece is selected, highlihgt it and its legal moves
+    // If a piece is selected, highlight it and its legal moves
     if (this.selectedPiece) {
       // Highlight selected square
       this.selectedSquare.element.classList.add("selected");
@@ -181,10 +192,9 @@ export default class Board {
   }
 
   makeMove(move) {
-    // Validate that the move is legal
-    if (!this.isValidMove(move)) {
-      return false;
-    }
+    const legalMoves = this.getLegalMovesForPiece(move.piece);
+    const isLegal = legalMoves.some((m) => isSameMove(m, move));
+    if (!isLegal) return false;
 
     // Handle en passant before removing original piece
     if (move.isEnPassant) {
@@ -203,6 +213,7 @@ export default class Board {
       const newPiece = new Queen(move.toSquare, move.piece.color);
       move.toSquare.setPiece(newPiece);
       newPiece.square = move.toSquare;
+      move.piece = newPiece;
     } else {
       // Regular move
       move.toSquare.setPiece(move.piece);
@@ -221,18 +232,34 @@ export default class Board {
     // Switch turn
     this.currentTurn = this.currentTurn === 1 ? 0 : 1;
 
+    // After the move, evaluate game state
+    const state = checkGameState(this);
+    if (state === "checkmate") {
+      this.gameOver = true;
+      console.log("Checkmate!");
+    } else if (state === "stalemate") {
+      this.gameOver = true;
+      console.log("Stalemate!");
+    } else if (state === "check") {
+      console.log("Check!");
+    }
+
     this.updateUI();
 
     return true;
   }
 
-  isValidMove(move) {
-    const legalMoves = move.piece.getLegalMoves(this);
+  getLegalMovesForPiece(piece) {
+    const pseudoMoves = piece.getPseudoLegalMoves(this);
+    return this.filterLegalMoves(pseudoMoves, piece.color);
+  }
 
-    return legalMoves.some(
-      (legalMove) =>
-        legalMove.fromSquare === move.fromSquare &&
-        legalMove.toSquare === move.toSquare
-    );
+  filterLegalMoves(moves, color) {
+    return moves.filter((move) => {
+      const undo = applyTemporaryMove(this, move);
+      const inCheck = isInCheck(this, color);
+      undoTemporaryMove(this, undo);
+      return !inCheck;
+    });
   }
 }

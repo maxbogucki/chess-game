@@ -96,27 +96,27 @@ export function getDiagonalMoves(board) {
   return moves;
 }
 
-export function isPathClear(board, r1, c1, r2, c2) {
-  const dr = Math.sign(r2 - r1);
-  const dc = Math.sign(c2 - c1);
-  let r = r1 + dr;
-  let c = c1 + dc;
-  while (r !== r2 || c !== c2) {
-    if (board.getSquare(r, c).piece) return false;
-    r += dr;
-    c += dc;
-  }
-  return true;
-}
+// export function isPathClear(board, r1, c1, r2, c2) {
+//   const dr = Math.sign(r2 - r1);
+//   const dc = Math.sign(c2 - c1);
+//   let r = r1 + dr;
+//   let c = c1 + dc;
+//   while (r !== r2 || c !== c2) {
+//     if (board.getSquare(r, c).piece) return false;
+//     r += dr;
+//     c += dc;
+//   }
+//   return true;
+// }
 
-export function isSquareAttacked(board, r, c, byColor) {
-  for (const sq of board.squares) {
-    const p = sq.piece;
-    if (!p || p.color !== byColor) continue;
-    const moves = p.getLegalMoves(board);
-    for (const m of moves) {
-      if (m.toSquare.row === r && m.toSquare.col === c) return true;
-    }
-  }
-  return false;
-}
+// export function isSquareAttacked(board, r, c, byColor) {
+//   for (const sq of board.squares) {
+//     const p = sq.piece;
+//     if (!p || p.color !== byColor) continue;
+//     const moves = p.getLegalMoves(board);
+//     for (const m of moves) {
+//       if (m.toSquare.row === r && m.toSquare.col === c) return true;
+//     }
+//   }
+//   return false;
+// }
