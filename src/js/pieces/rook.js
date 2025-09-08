@@ -1,5 +1,5 @@
 import Piece from "./piece.js";
-import { getStraightMoves } from "../utils/moveHelpers.js";
+import { getStraightMoves } from "../helpers/moveHelpers.js";
 
 export default class Rook extends Piece {
   constructor(square, color) {
@@ -10,7 +10,7 @@ export default class Rook extends Piece {
     return this.color === "white" ? "♖" : "♜";
   }
 
-  getLegalMoves(board) {
+  getPseudoLegalMoves(board) {
     return getStraightMoves.call(this, board);
   }
 }

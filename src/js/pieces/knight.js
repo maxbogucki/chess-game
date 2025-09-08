@@ -10,7 +10,7 @@ export default class Knight extends Piece {
     return this.color === "white" ? "♘" : "♞";
   }
 
-  getLegalMoves(board) {
+  getPseudoLegalMoves(board) {
     const moves = [];
     const { row, col } = this.square;
 

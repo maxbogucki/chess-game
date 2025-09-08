@@ -1,6 +1,6 @@
 import Piece from "./piece.js";
 import Move from "../game/move.js";
-import { isPathClear, isSquareAttacked } from "../utils/moveHelpers.js";
+// import { isPathClear, isSquareAttacked } from "../helpers/moveHelpers.js";
 
 export default class King extends Piece {
   constructor(square, color) {
@@ -11,7 +11,7 @@ export default class King extends Piece {
     return this.color === "white" ? "♔" : "♚";
   }
 
-  getLegalMoves(board) {
+  getPseudoLegalMoves(board) {
     const moves = [];
     const { row, col } = this.square;
 
@@ -45,51 +45,6 @@ export default class King extends Piece {
             : null;
           moves.push(new Move(this.square, targetSquare, this, capturedPiece));
         }
-      }
-    }
-
-    // Add Castling Logic
-    if (!this.hasMoved) {
-      const homeRow = this.color === "white" ? 7 : 0;
-
-      // King-side castling (short castling)
-      const kingSideRookSquare = board.getSquare(homeRow, 7);
-      if (
-        kingSideRookSquare.isOccupied() &&
-        kingSideRookSquare.piece instanceof Piece &&
-        kingSideRookSquare.piece.constructor.name === "Rook" &&
-        !kingSideRookSquare.piece.hasMoved &&
-        isPathClear(board, this.square, kingSideRookSquare) &&
-        !isSquareAttacked(board, this.square, this.color) &&
-        !isSquareAttacked(board, board.getSquare(homeRow, 5), this.color) &&
-        !isSquareAttacked(board, board.getSquare(homeRow, 6), this.color)
-      ) {
-        const targetSquare = board.getSquare(homeRow, 6);
-        moves.push(
-          new Move(this.square, targetSquare, this, null, {
-            castling: "king-side",
-          })
-        );
-      }
-
-      // Queen-side castling (long castling)
-      const queenSideRookSquare = board.getSquare(homeRow, 0);
-      if (
-        queenSideRookSquare.isOccupied() &&
-        queenSideRookSquare.piece instanceof Piece &&
-        queenSideRookSquare.piece.constructor.name === "Rook" &&
-        !queenSideRookSquare.piece.hasMoved &&
-        isPathClear(board, this.square, queenSideRookSquare) &&
-        !isSquareAttacked(board, this.square, this.color) &&
-        !isSquareAttacked(board, board.getSquare(homeRow, 3), this.color) &&
-        !isSquareAttacked(board, board.getSquare(homeRow, 2), this.color)
-      ) {
-        const targetSquare = board.getSquare(homeRow, 2);
-        moves.push(
-          new Move(this.square, targetSquare, this, null, {
-            castling: "queen-side",
-          })
-        );
       }
     }
 

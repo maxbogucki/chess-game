@@ -10,7 +10,7 @@ export default class Pawn extends Piece {
     return this.color === "white" ? "♙" : "♟";
   }
 
-  getLegalMoves(board) {
+  getPseudoLegalMoves(board) {
     const moves = [];
     const { row, col } = this.square;
     const direction = this.color === "white" ? -1 : 1;
